@@ -514,6 +514,11 @@ ul.ind li{margin-bottom:6px}
 @media (max-width:900px){.pkpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media print{.dropz,.pacts,.ppaste,.pimport,.ppre,#pgClear{display:none!important}.ppin{border:0}}
 .pwarn2{margin:12px 0 0;padding:9px 12px;border-left:3px solid var(--yellow);background:var(--yellow-bg);color:var(--yellow-ink);border-radius:6px;font-size:13.5px}
+.tracebar{margin:10px 0 18px;border:1px solid var(--rule);border-radius:12px;background:var(--panel);padding:10px 14px;font-size:14px}
+.tracebar summary{cursor:pointer;color:var(--ink-2)}.tracebar summary b{color:var(--ink)}
+.tracebody{margin-top:10px}.ttab{width:100%;border-collapse:collapse;font-size:13.5px}.ttab th,.ttab td{padding:6px 8px;border-bottom:1px solid var(--rule);text-align:left}.ttab td.num{text-align:right}
+.slide .sfoot{margin-top:1.4em;font-size:.6em;color:var(--muted)}
+.slide .stab{width:100%;border-collapse:collapse;margin-top:.8em;font-size:.9em}.slide .stab td{padding:.45em .4em;border-bottom:1px solid var(--rule)}.slide .stab td:last-child{text-align:right}
 </style>
 <style>
 /* ================= Prise en main intégrée — module générique (v1.0.0) =================
@@ -943,6 +948,7 @@ tr.row.missrow .rowbtn .t::after{content:"Donnée manquante";margin-left:8px;bac
           <div class="depline" id="depLine"></div>
           <h1 class="headline" id="headline"></h1>
           <p class="lede" id="lede"></p>
+      <details class="tracebar" id="traceBar"></details>
         </div>
         <div class="solid" data-tuto="solidite">
           <div class="k"><span>Solidité du chiffrage</span><b id="solPct"></b></div>
@@ -2292,7 +2298,7 @@ function tsv(){
  return L.join('\n');
 }
 function copyTsv(){
- var text=tsv();
+ var text=tsv()+traceTsv();
  function fb(){var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy');}catch(e){}document.body.removeChild(ta);toast(ok?'Tableau copié : collez-le dans Excel.':'Le navigateur bloque la copie : utilisez l’impression.');}
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(function(){toast('Tableau copié : collez-le dans Excel.');},fb);else fb();
 }
@@ -2511,7 +2517,7 @@ function spark(v){
 }
 
 /* ===== Rendu global ===== */
-function renderAll(o){
+function renderAll(o){try{renderTrace();}catch(_e){}
  o=o||{};
  qa('[data-scen]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.scen===state.scen));});placeThumb();
  var ss=byId('scenSel');if(ss)ss.value=state.scen;
@@ -2874,6 +2880,9 @@ function buildDeck(){
   '<p class="callout">'+esc(prochaineTxt())+'</p>'+
   '<p class="small">Simulateur PLF et PLFSS 2027 des départements. Sources : projet de loi de finances n° 3210, PLFSS 2027, OFGL, BP Avocats, Départements de France ; calendrier et droit : Public Sénat, NosParlementaires, Légifrance (Constitution, articles 47, 47-1 et 49).</p>',
   '<p>Terminer sur trois messages et sur la prochaine échéance. Proposer aux élus de revenir vers eux après le vote du Sénat avec les chiffres actualisés.</p>');
+ var TL=traceList();
+ add('hyp','D’où viennent ces chiffres','<p class="kick">Méthode</p><h2>D’où viennent ces chiffres</h2><p class="lead">Version du texte : '+esc(SCEN[state.scen].label.toLowerCase())+'. Chiffrage des mesures : BP Avocats ; comptes : OFGL ; état des textes au '+dFrA(ETAT.date)+'.</p>'+(TL.length?'<table class="stab">'+TL.slice(0,8).map(function(x){return '<tr><td>'+esc(x.l)+'</td><td><b>'+traceFmt(x.v,x.u)+'</b> <small>(national : '+traceFmt(x.nat,x.u)+')</small></td></tr>';}).join('')+'</table>'+(TL.length>8?'<p class="small">… et '+(TL.length-8)+' autres, détaillées dans la note.</p>':''):'<p class="callout">Aucune hypothèse modifiée : toutes les valeurs sont les données nationales publiques.</p>'),'<p>Montrer que les chiffres sont traçables : version du texte, sources, et ce qui a été adapté au département.</p>');
+ var tl=traceLine();sl.forEach(function(x){x.h+='<p class="sfoot">'+esc(tl)+'</p>';});
  return sl;
 }
 
@@ -3399,7 +3408,16 @@ function pgTables(){
  var pro=[['Regroupement','Section','BP 2026 dépenses','BP 2026 recettes','2027 dépenses','2027 recettes','Effet sur l’épargne']].concat(P.rows.map(function(r){var ep=r.s==='I'?'':((+r.r27||0)-(+r.r26||0))-((+r.d27||0)-(+r.d26||0));return [r.l,r.s==='I'?'Investissement':'Fonctionnement',+r.d26||0,+r.r26||0,+r.d27||0,+r.r27||0,ep];}));
  var hyp=[['Hypothèse','Valeur'],['Évolution des recettes hors propositions (%)',P.gR],['Ajustement ponctuel des recettes (M€)',P.aR],['Évolution des dépenses hors propositions (%)',P.gD],['Ajustement ponctuel des dépenses (M€)',P.aD],
   ['Investissement hors propositions : écart dépenses (M€)',P.aDI],['Investissement hors propositions : écart recettes (M€)',P.aRI],['Remboursement du capital 2027 (M€)',R.remb27],[],['Mesure du PLF / PLFSS 2027','2027, M€','Comptée']].concat(R.meas.map(function(x){return [x.t,x.a,x.on?'oui':'non'];}));
- return {syn:syn,pro:pro,hyp:hyp};
+ /* RG-T2 : traçabilité de la perspective */
+ var D0=pgDefaults(cur.D),tr=(typeof traceInfo==='function'?traceInfo():[['Collectivité',nom],['Version du texte',SCEN[state.scen].label]]).slice();
+ tr.push([],['Perspective BP 2027','']);
+ PBK.forEach(function(k){if(P.edited[k])tr.push(['  BP 2026 saisi : '+k,B[k]]);});
+ if(!PBK.some(function(k){return P.edited[k];}))tr.push(['  BP 2026','approché par le réalisé 2025 (OFGL), non saisi']);
+ [['gR','Évolution des recettes hors propositions (%)'],['gD','Évolution des dépenses hors propositions (%)'],['aR','Ajustement des recettes (M€)'],['aD','Ajustement des dépenses (M€)'],['aDI','Investissement hors propositions, dépenses (M€)'],['aRI','Investissement hors propositions, recettes (M€)']].forEach(function(x){if(P[x[0]])tr.push(['  '+x[1],P[x[0]]]);});
+ R.meas.forEach(function(x){if(!x.on)tr.push(['  Mesure non comptée',x.t]);});
+ tr.push(['  Propositions 2027',P.rows.length+' ligne'+(P.rows.length>1?'s':'')]);
+ tr.push(['Établi le',pgStamp()]);
+ return {syn:syn,pro:pro,hyp:hyp,tr:tr};
 }
 /* RG-P7a : classeur .xlsx écrit sans bibliothèque (zip sans compression) */
 var CRCT=null;function crc32(u){if(!CRCT){CRCT=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;CRCT[n]=c>>>0;}}var x=0xFFFFFFFF;for(var i=0;i<u.length;i++)x=CRCT[(x^u[i])&255]^(x>>>8);return (x^0xFFFFFFFF)>>>0;}
@@ -3421,7 +3439,7 @@ function sheetXml(rows,wid){
   rows.map(function(r,ri){return '<row r="'+(ri+1)+'">'+r.map(function(v,ci){var ref=col(ci)+(ri+1),st=ri===0?' s="1"':'';if(typeof v==='number'&&isFinite(v))return '<c r="'+ref+'" s="2"><v>'+(Math.round(v*1e6)/1e6)+'</v></c>';if(v===''||v===null||v===undefined)return '';return '<c r="'+ref+'" t="inlineStr"'+st+'><is><t>'+xmlEsc(v)+'</t></is></c>';}).join('')+'</row>';}).join('')+'</sheetData></worksheet>';
 }
 function pgXlsxOut(){
- var T=pgTables(),sh=[['Synthèse',T.syn,[46,16,22,14]],['Propositions',T.pro,[52,18,18,18,18,18,20]],['Hypothèses',T.hyp,[60,16,12]]];
+ var T=pgTables(),sh=[['Synthèse',T.syn,[46,16,22,14]],['Propositions',T.pro,[52,18,18,18,18,18,20]],['Hypothèses',T.hyp,[60,16,12]],['Traçabilité',T.tr,[60,40]]];
  var f=[{n:'[Content_Types].xml',d:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sh.map(function(s,i){return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';}).join('')+'</Types>'},
   {n:'_rels/.rels',d:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
   {n:'xl/workbook.xml',d:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+sh.map(function(s,i){return '<sheet name="'+s[0]+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>';}).join('')+'</sheets></workbook>'},
@@ -3431,7 +3449,7 @@ function pgXlsxOut(){
  pgDownload('perspective-BP2027-'+pgSlug()+'-'+pgStamp()+'.xlsx',zipStore(f));
 }
 function pgCopyTsv(){var T=pgTables(),f=function(v){return typeof v==='number'?String(Math.round(v*1000)/1000).replace('.',','):String(v===undefined?'':v);};
- var txt=[T.syn,[[]],T.pro,[[]],T.hyp].map(function(t){return t.map(function(r){return r.map(f).join('\t');}).join('\n');}).join('\n');
+ var txt=[T.syn,[[]],T.pro,[[]],T.hyp,[[]],T.tr].map(function(t){return t.map(function(r){return r.map(f).join('\t');}).join('\n');}).join('\n');
  var fb=function(){var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();toast(ok?'Perspective copiée : collez-la dans Excel.':'Le navigateur bloque la copie.');};
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(function(){toast('Perspective copiée : collez-la dans Excel.');},fb);else fb();}
 /* RG-P7b : fichier de perspective (.json) à transmettre et à rouvrir */
@@ -3455,6 +3473,29 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
 document.addEventListener('change',function(e){if(e.target&&e.target.id==='pgOpen'){if(e.target.files&&e.target.files[0])pgOpenFile(e.target.files[0]);e.target.value='';}});
 
 window.__pg={calc:function(){return pgCalc();},pg:function(){return PG;},go:function(p){setPage(p,{force:true});},dep:function(c){chooseDep(c);},csv:pgCsv,num:pgNum};
+
+/* ===== Traçabilité : version du texte et hypothèses modifiées, visibles partout (RG-T1) ===== */
+function traceList(){
+ var out=[];
+ cur.MEAS.forEach(function(ms){ms.params.forEach(function(x){if(isLocal(ms.id,x.k))out.push({l:ms.title+' : '+x.l,nat:natVal(ms.id,x.k),v:getVal(ms.id,x.k),u:x.u||''});});});
+ cur.REFS.forEach(function(x){if(isLocal('__ref',x.k))out.push({l:x.l,nat:natVal('__ref',x.k),v:getVal('__ref',x.k),u:x.u||''});});
+ return out;
+}
+function traceFmt(v,u){return (typeof v==='number'?(Math.abs(v)<10?F2.format(v):F1.format(v)):String(v))+(u?'\u00a0'+u:'');}
+function traceInfo(){
+ var L=traceList(),rows=[['Collectivité',cur.D.nom],['Version du texte',SCEN[state.scen].label],['État des textes','vérifié le '+dFrA(ETAT.date)],['Chiffrage des mesures','BP Avocats, texte déposé (data.gouv.fr)'],['Hypothèses modifiées',L.length?String(L.length):'aucune (données nationales)']];
+ L.forEach(function(x){rows.push(['  '+x.l,traceFmt(x.nat,x.u)+' → '+traceFmt(x.v,x.u)]);});
+ return rows;
+}
+function traceTsv(){return '\n\nTraçabilité\n'+traceInfo().map(function(r){return r.join('\t');}).join('\n');}
+function traceLine(){var n=traceList().length;return 'Version du texte : '+SCEN[state.scen].label.toLowerCase()+' ; chiffres au '+dFrA(ETAT.date)+' ; '+(n?n+' hypothèse'+(n>1?'s':'')+' modifiée'+(n>1?'s':''):'données nationales, aucune hypothèse modifiée')+'.';}
+function renderTrace(){
+ var el=byId('traceBar');if(!el||!cur.D)return;var L=traceList(),open=el.open;
+ el.innerHTML='<summary><b>D’où vient ce résultat ?</b> '+esc(traceLine())+'</summary><div class="tracebody"><p>Version du texte : <b>'+esc(SCEN[state.scen].label)+'</b>. Chiffrage des mesures : BP Avocats (texte déposé), comptes OFGL. État des textes vérifié le '+dFrA(ETAT.date)+'.</p>'+
+  (L.length?'<table class="ttab"><thead><tr><th>Hypothèse modifiée</th><th>Donnée nationale</th><th>Retenu</th></tr></thead><tbody>'+L.map(function(x){return '<tr><td>'+esc(x.l)+'</td><td class="num">'+traceFmt(x.nat,x.u)+'</td><td class="num"><b>'+traceFmt(x.v,x.u)+'</b></td></tr>';}).join('')+'</tbody></table>':'<p>Aucune hypothèse modifiée : toutes les valeurs sont les données nationales.</p>')+
+  '<p class="sub">Ces informations figurent aussi dans la note, la présentation pour les élus et les exports Excel.</p></div>';
+ el.open=open;
+}
 
 /* ===== Démarrage ===== */
 (function(){

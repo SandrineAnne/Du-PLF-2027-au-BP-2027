@@ -810,6 +810,11 @@ tr.row.missrow .rowbtn .t::after{content:"Donnée manquante";margin-left:8px;bac
 @media print{.noteact{display:none!important}}
 
 @media (max-width:480px){.seg button{padding:6px 3px;font-size:12px}}
+.tracebar{margin:10px 0 18px;border:1px solid var(--rule);border-radius:12px;background:var(--panel);padding:10px 14px;font-size:14px}
+.tracebar summary{cursor:pointer;color:var(--ink-2)}.tracebar summary b{color:var(--ink)}
+.tracebody{margin-top:10px}.ttab{width:100%;border-collapse:collapse;font-size:13.5px}.ttab th,.ttab td{padding:6px 8px;border-bottom:1px solid var(--rule);text-align:left}.ttab td.num{text-align:right}
+.slide .sfoot{margin-top:1.4em;font-size:.6em;color:var(--muted)}
+.slide .stab{width:100%;border-collapse:collapse;margin-top:.8em;font-size:.9em}.slide .stab td{padding:.45em .4em;border-bottom:1px solid var(--rule)}.slide .stab td:last-child{text-align:right}
 /* ===== Perspective BP 2027 ===== */
 .pkpi{grid-template-columns:repeat(4,minmax(0,1fr))}
 .pkpi>div>div{padding:0!important;border:0!important}
@@ -939,6 +944,7 @@ tr.row.missrow .rowbtn .t::after{content:"Donnée manquante";margin-left:8px;bac
       <div class="depline" id="depLine" style="margin-top:16px"></div>
       <h1 class="headline" id="headline"></h1>
       <p class="lede" id="lede"></p>
+      <details class="tracebar" id="traceBar"></details>
       <div class="block simple-only" id="clairBox"><div id="clair"></div></div>
       <div class="phead pkpi" id="kpi" data-tuto="kpi"></div>
       <figure class="bridge-fig adv" data-tuto="pont"><div class="bridge-head"><h2>Pont d’épargne brute, de 2025 à 2027 (M€)</h2><div class="legend"><span><i style="background:var(--navy)"></i>Épargne</span><span><i style="background:var(--salmon)"></i>Dégrade</span><span><i style="background:var(--turq)"></i>Améliore</span></div></div>
@@ -1520,7 +1526,7 @@ function render(){
  var tR=cagr(d,L,'rrf'),tD=cagr(d,L,'drf');
  byId('hyp').innerHTML=['gR','gD'].map(function(k){var t=k==='gR'?tR:tD;return '<div class="pfld"><label><span>Évolution annuelle des '+(k==='gR'?'recettes':'dépenses')+' de fonctionnement, 2025 à 2027</span><input class="ppin num" data-hyp="'+k+'" inputmode="decimal" value="'+fmtIn(S[k])+'"><em>%</em></label><p>0 % : budget 2025 inchangé.<span class="ppre"><button type="button" class="chip" data-hk="'+k+'" data-hv="0">0 %</button><button type="button" class="chip" data-hk="'+k+'" data-hv="'+(Math.round(t*10)/10)+'">Tendance 2023-2025 : '+(t>=0?'+':'')+F1.format(t)+' %</button><button type="button" class="chip" data-hk="'+k+'" data-hv="2">+2 %</button></span></p></div>';}).join('');
  byId('bpRec').innerHTML='Chiffrage de BP Avocats pour '+esc(d.nom)+' (budget principal, texte déposé) : '+F2.format(b.tot)+'&nbsp;M€ de mesures de loi de finances, '+F2.format(b.totc)+'&nbsp;M€ avec la CNRACL. En lecture « budget principal », l’outil reprend ces montants à l’identique'+(L==='bp'?' : <b>'+F2.format(R.F+R.I)+'&nbsp;M€</b>.':'.')+(b.erosion?' Pour mémoire, le gel de la DGF représente une érosion de '+F2.format(b.erosion)+'&nbsp;M€ en euros constants, non comptée dans les mesures.':'');
- renderFunds(R);renderEns(R);renderAnnexes(R);renderPg();renderClair(R);if(S.page==='note')renderNote();if(S.page==='prosp')renderProsp();
+ renderFunds(R);renderEns(R);renderAnnexes(R);renderPg();renderClair(R);renderTraceB();if(S.page==='note')renderNote();if(S.page==='prosp')renderProsp();
 }
 /* RG-B8 : commune et intercommunalité, ensemble intercommunal (budget principal, version affichée) */
 function effortOf(x,sc){var keep={a85:S.a85,a87:S.a87,fdptpCut:S.fdptpCut,gDmto:S.gDmto};if(x.code!==S.code){S.a85=false;S.a87=0;S.fdptpCut=false;S.gDmto=0;}
@@ -1976,7 +1982,16 @@ function pgTables(){
  var pro=[['Regroupement','Section','BP 2026 dépenses','BP 2026 recettes','2027 dépenses','2027 recettes','Effet sur l’épargne']].concat(P.rows.map(function(r){var ep=r.s==='I'?'':((+r.r27||0)-(+r.r26||0))-((+r.d27||0)-(+r.d26||0));return [r.l,r.s==='I'?'Investissement':'Fonctionnement',+r.d26||0,+r.r26||0,+r.d27||0,+r.r27||0,ep];}));
  var hyp=[['Hypothèse','Valeur'],['Évolution des recettes hors propositions (%)',P.gR],['Ajustement ponctuel des recettes (M€)',P.aR],['Évolution des dépenses hors propositions (%)',P.gD],['Ajustement ponctuel des dépenses (M€)',P.aD],
   ['Investissement hors propositions : écart dépenses (M€)',P.aDI],['Investissement hors propositions : écart recettes (M€)',P.aRI],['Remboursement du capital 2027 (M€)',R.remb27],[],['Mesure du PLF / PLFSS 2027','2027, M€','Comptée']].concat(R.meas.map(function(x){return [x.t,x.a,x.on?'oui':'non'];}));
- return {syn:syn,pro:pro,hyp:hyp};
+ /* RG-T2 : traçabilité de la perspective */
+ var D0=pgDefaults(cur.D),tr=(typeof traceInfo==='function'?traceInfo():[['Collectivité',nom],['Version du texte',SCEN[state.scen].label]]).slice();
+ tr.push([],['Perspective BP 2027','']);
+ PBK.forEach(function(k){if(P.edited[k])tr.push(['  BP 2026 saisi : '+k,B[k]]);});
+ if(!PBK.some(function(k){return P.edited[k];}))tr.push(['  BP 2026','approché par le réalisé 2025 (OFGL), non saisi']);
+ [['gR','Évolution des recettes hors propositions (%)'],['gD','Évolution des dépenses hors propositions (%)'],['aR','Ajustement des recettes (M€)'],['aD','Ajustement des dépenses (M€)'],['aDI','Investissement hors propositions, dépenses (M€)'],['aRI','Investissement hors propositions, recettes (M€)']].forEach(function(x){if(P[x[0]])tr.push(['  '+x[1],P[x[0]]]);});
+ R.meas.forEach(function(x){if(!x.on)tr.push(['  Mesure non comptée',x.t]);});
+ tr.push(['  Propositions 2027',P.rows.length+' ligne'+(P.rows.length>1?'s':'')]);
+ tr.push(['Établi le',pgStamp()]);
+ return {syn:syn,pro:pro,hyp:hyp,tr:tr};
 }
 /* RG-P7a : classeur .xlsx écrit sans bibliothèque (zip sans compression) */
 var CRCT=null;function crc32(u){if(!CRCT){CRCT=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;CRCT[n]=c>>>0;}}var x=0xFFFFFFFF;for(var i=0;i<u.length;i++)x=CRCT[(x^u[i])&255]^(x>>>8);return (x^0xFFFFFFFF)>>>0;}
@@ -1998,7 +2013,7 @@ function sheetXml(rows,wid){
   rows.map(function(r,ri){return '<row r="'+(ri+1)+'">'+r.map(function(v,ci){var ref=col(ci)+(ri+1),st=ri===0?' s="1"':'';if(typeof v==='number'&&isFinite(v))return '<c r="'+ref+'" s="2"><v>'+(Math.round(v*1e6)/1e6)+'</v></c>';if(v===''||v===null||v===undefined)return '';return '<c r="'+ref+'" t="inlineStr"'+st+'><is><t>'+xmlEsc(v)+'</t></is></c>';}).join('')+'</row>';}).join('')+'</sheetData></worksheet>';
 }
 function pgXlsxOut(){
- var T=pgTables(),sh=[['Synthèse',T.syn,[46,16,22,14]],['Propositions',T.pro,[52,18,18,18,18,18,20]],['Hypothèses',T.hyp,[60,16,12]]];
+ var T=pgTables(),sh=[['Synthèse',T.syn,[46,16,22,14]],['Propositions',T.pro,[52,18,18,18,18,18,20]],['Hypothèses',T.hyp,[60,16,12]],['Traçabilité',T.tr,[60,40]]];
  var f=[{n:'[Content_Types].xml',d:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sh.map(function(s,i){return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';}).join('')+'</Types>'},
   {n:'_rels/.rels',d:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
   {n:'xl/workbook.xml',d:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+sh.map(function(s,i){return '<sheet name="'+s[0]+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>';}).join('')+'</sheets></workbook>'},
@@ -2008,7 +2023,7 @@ function pgXlsxOut(){
  pgDownload('perspective-BP2027-'+pgSlug()+'-'+pgStamp()+'.xlsx',zipStore(f));
 }
 function pgCopyTsv(){var T=pgTables(),f=function(v){return typeof v==='number'?String(Math.round(v*1000)/1000).replace('.',','):String(v===undefined?'':v);};
- var txt=[T.syn,[[]],T.pro,[[]],T.hyp].map(function(t){return t.map(function(r){return r.map(f).join('\t');}).join('\n');}).join('\n');
+ var txt=[T.syn,[[]],T.pro,[[]],T.hyp,[[]],T.tr].map(function(t){return t.map(function(r){return r.map(f).join('\t');}).join('\n');}).join('\n');
  var fb=function(){var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();toast(ok?'Perspective copiée : collez-la dans Excel.':'Le navigateur bloque la copie.');};
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(function(){toast('Perspective copiée : collez-la dans Excel.');},fb);else fb();}
 /* RG-P7b : fichier de perspective (.json) à transmettre et à rouvrir */
@@ -2174,6 +2189,9 @@ function buildDeck(){
  }
  add('À retenir','<p class="kick">À retenir</p><h2>Trois messages</h2><ol class="lead"><li><b>'+mon(T)+'</b> d’effort en 2027, soit '+F0.format(hab)+'&nbsp;€ par habitant.</li><li>'+(d.noData?'La mesure principale est '+(items[0]?SHORT[items[0].id]:'—')+'.':'Notre épargne brute passerait de '+mon(R.eb0)+' à '+mon(R.eb27)+'.')+'</li><li>Rien n’est voté : l’effort pourrait descendre à <b>'+mon(tA)+'</b> si le Parlement reprend les votes de l’Assemblée.</li></ol><p class="small">Estimations sur un texte en navette : elles ne valent pas notification. Sources : BP Avocats (chiffrage du texte déposé), OFGL (comptes 2025), DGFiP (balances comptables 2025).</p>',
   '<p>Proposer de revenir vers les élus après le vote du Sénat avec les chiffres actualisés.</p>');
+ var TL=traceList();
+ add('Méthode','<p class="kick">Méthode</p><h2>D’où viennent ces chiffres</h2><p class="lead">'+esc(SCEN[S.scen].label)+', lecture « '+esc(LECT[S.L].toLowerCase())+' ». Chiffrage des mesures : BP Avocats ; comptes : OFGL 2025 ; état des textes au 7 novembre 2026.</p>'+(TL.length?'<table class="stab">'+TL.map(function(x){return '<tr><td>'+esc(x.l)+'</td><td><b>'+esc(x.v)+'</b> <small>(par défaut : '+esc(x.nat)+')</small></td></tr>';}).join('')+'</table>':'<p class="callout">Aucune hypothèse modifiée : chiffrage public et comptes publiés, sans ajustement.</p>'),'<p>Montrer que les chiffres sont traçables : version du texte, sources, et ce qui a été adapté à la collectivité.</p>');
+ var tl=traceLine();sl.forEach(function(x){x.h+='<p class="sfoot">'+esc(tl)+'</p>';});
  return sl;
 }
 /* ---------- note de synthèse ---------- */
@@ -2194,6 +2212,7 @@ function renderNote(){
   '<tr><td>Capacité de désendettement</td><td class="num">'+ans(Rb.cd0)+'</td><td class="num">'+ans(Rb.cd27)+'</td><td class="num">'+ans(Rc.cd0)+'</td><td class="num">'+ans(Rc.cd27)+'</td></tr></tbody></table><p class="small">'+(S.gR||S.gD?'Évolution annuelle retenue : recettes '+F1.format(S.gR)+'&nbsp;%, dépenses '+F1.format(S.gD)+'&nbsp;%.':'Budget 2025 supposé inchangé jusqu’en 2027.')+' Repères : taux d’épargne de 8 % ; capacité de désendettement de 12 ans.</p>';
  var EN=ensemble(d);if(EN)h+='<h2>'+(EN.t==='C'?'Commune et intercommunalité':'Ensemble intercommunal')+'</h2><p>'+(EN.t==='C'?'Effort de la commune : '+mon(EN.eC.T)+' ; effort total de '+esc(EN.e.nom)+' : '+mon(EN.eE.T)+', dont '+mon(EN.part)+' rapportés à la commune au prorata de la population ('+F1.format(EN.share*100)+'&nbsp;%). Effort sur le territoire communal : <b>'+mon(EN.total)+'</b>.':'Effort de l’intercommunalité : '+mon(EN.eE.T)+' ; de ses '+EN.mem.length+' communes membres : '+mon(EN.sumC)+'. Ensemble intercommunal : <b>'+mon(EN.total)+'</b>.')+' Budget principal.</p>';
  if(d.fonds)h+='<h2>Fonds répartis par le département et dotations nouvelles</h2><ul><li>FDPTP perçu en 2025 : '+mon(d.fonds.fdptp)+' ; aucun écrêtement dans le texte déposé'+(S.fdptpCut?' (scénario de baisse de 21 % retenu dans cette note)':'')+'.</li><li>Fonds départemental des droits de mutation perçu en 2025 : '+mon(d.fonds.fdmto)+(S.gDmto?' ; évolution retenue : '+F1.format(S.gDmto)+'&nbsp;%':'')+'.</li><li>Dotation des communes rurales peu denses (article 85) : '+(S.a85?'éligibilité déclarée, 5 560 € en moyenne':'non retenue')+' ; fonds de soutien exceptionnel (article 87) : '+(S.a87?F0.format(S.a87)+'&nbsp;k€ attendus':'non retenu')+'.</li></ul>';
+ var TLn=traceList();h+='<h2>Hypothèses retenues</h2><p>'+esc(traceLine())+'</p>'+(TLn.length?'<table><thead><tr><th>Hypothèse modifiée</th><th>Par défaut</th><th>Retenu</th></tr></thead><tbody>'+TLn.map(function(t){return '<tr><td>'+esc(t.l)+'</td><td>'+esc(t.nat)+'</td><td>'+esc(t.v)+'</td></tr>';}).join('')+'</tbody></table>':'');
  h+='<h2>Points de vigilance</h2><ul><li>Texte en navette : PLFSS rejeté par l’Assemblée le 23 octobre, première partie du PLF rejetée le 4 novembre ; le Sénat repart de la copie du Gouvernement.</li><li>La CPEB dépend du rang de ressources de la collectivité : près d’un seuil, le taux change nettement.</li><li>La baisse du FCTVA s’appliquera aux attributions versées à partir de 2027 ; un budget annexe soumis à la TVA n’est pas concerné.</li><li>Les ratios partent des comptes 2025 ; une perspective fondée sur le BP 2026 et les propositions 2027 est disponible dans l’outil.</li></ul>';
  h+='<p class="small">Sources : BP Avocats, chiffrage du PLF 2027 par collectivité, texte déposé (data.gouv.fr, Licence Ouverte 2.0) ; OFGL, comptes 2025 ; DGFiP, balances comptables 2025. Estimations : elles ne valent pas notification.</p>';
  el.innerHTML=h;
@@ -2318,6 +2337,32 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
 document.addEventListener('change',function(e){var t=e.target;if(!t||!t.dataset)return;
  if(t.dataset.pr){var x=parseNum(t.value),k=t.dataset.pr;PR[k]=k==='duree'?Math.max(1,Math.round(x)):(k==='taux'?Math.max(0,Math.min(15,x)):x);renderProsp();return;}
  if(t.id==='prRec'){PR.reconduit=t.checked;renderProsp();return;}});
+
+/* ===== Traçabilité (RG-T1) : version du texte, lecture et hypothèses modifiées ===== */
+function traceList(){
+ var L=[],f=function(v,u){return (Math.abs(v)<10?F2.format(v):F1.format(v))+'\u00a0'+u;};
+ if(S.L!=='bp')L.push({l:'Lecture budgétaire',nat:'budget principal',v:LECT[S.L].toLowerCase()});
+ if(S.gR)L.push({l:'Évolution annuelle des recettes de fonctionnement',nat:'0 %',v:f(S.gR,'%')});
+ if(S.gD)L.push({l:'Évolution annuelle des dépenses de fonctionnement',nat:'0 %',v:f(S.gD,'%')});
+ if(S.a85)L.push({l:'Dotation rurale (article 85)',nat:'non retenue',v:'éligibilité déclarée'});
+ if(S.a87)L.push({l:'Fonds de soutien (article 87)',nat:'0 k€',v:F0.format(S.a87)+'\u00a0k€'});
+ if(S.fdptpCut)L.push({l:'FDPTP',nat:'aucun écrêtement',v:'baisse de 21 % (scénario)'});
+ if(S.gDmto)L.push({l:'Fonds départemental des droits de mutation',nat:'0 %',v:f(S.gDmto,'%')});
+ if(typeof PR!=='undefined'){if(PR.inv!==null)L.push({l:'Prospective : investissement annuel',nat:'par défaut',v:f(PR.inv,'M€')});if(PR.rinv!==null)L.push({l:'Prospective : recettes d’investissement',nat:'niveau 2025',v:f(PR.rinv,'M€')});
+  if(PR.taux!==3.5)L.push({l:'Prospective : taux des emprunts',nat:'3,5 %',v:f(PR.taux,'%')});if(PR.duree!==20)L.push({l:'Prospective : durée des emprunts',nat:'20 ans',v:PR.duree+' ans'});
+  if(PR.fdr)L.push({l:'Prospective : fonds de roulement repris',nat:'0',v:f(PR.fdr,'M€')});if(!PR.reconduit)L.push({l:'Prospective : mesures après 2027',nat:'reconduites',v:'limitées à 2027'});}
+ return L;
+}
+function traceLine(){var n=traceList().length;return 'Version du texte : '+SCEN[S.scen].label.toLowerCase()+' ; lecture : '+LECT[S.L].toLowerCase()+' ; chiffres au 7 novembre 2026 ; '+(n?n+' hypothèse'+(n>1?'s':'')+' modifiée'+(n>1?'s':''):'aucune hypothèse modifiée')+'.';}
+function traceInfo(){var d=ent(S.code),L=traceList(),rows=[['Collectivité',d.nom+(d.code?' ('+d.code+')':'')],['Version du texte',SCEN[S.scen].label],['Lecture budgétaire',LECT[S.L]],['État des textes',ETAT_TXT],['Chiffrage des mesures','BP Avocats, texte déposé (data.gouv.fr)'],['Comptes','OFGL 2025 ; DGFiP, balances comptables 2025'],['Hypothèses modifiées',L.length?String(L.length):'aucune']];
+ L.forEach(function(x){rows.push(['  '+x.l,x.nat+' → '+x.v]);});return rows;}
+function renderTraceB(){
+ var el=byId('traceBar');if(!el||!S.code)return;var L=traceList(),open=el.open;
+ el.innerHTML='<summary><b>D’où vient ce résultat ?</b> '+esc(traceLine())+'</summary><div class="tracebody"><p>'+esc(SCEN[S.scen].label)+' : '+esc(SCEN[S.scen].d)+' Comptes : OFGL 2025 ; fonds du département : DGFiP, balances 2025.</p>'+
+  (L.length?'<table class="ttab"><thead><tr><th>Hypothèse modifiée</th><th>Par défaut</th><th>Retenu</th></tr></thead><tbody>'+L.map(function(x){return '<tr><td>'+esc(x.l)+'</td><td>'+esc(x.nat)+'</td><td><b>'+esc(x.v)+'</b></td></tr>';}).join('')+'</tbody></table>':'<p>Aucune hypothèse modifiée : chiffrage public et comptes publiés, sans ajustement.</p>')+
+  '<p class="sub">Ces informations figurent aussi dans la note, la présentation pour les élus et l’export Excel de la perspective.</p></div>';
+ el.open=open;
+}
 
 document.addEventListener('input',function(e){if(e.target.id==='qIn'){QR=search(e.target.value);QI=0;showQ();}});
 document.addEventListener('keydown',function(e){if(e.target.id!=='qIn')return;if(e.key==='ArrowDown'){e.preventDefault();QI=Math.min(QR.length-1,QI+1);showQ();}else if(e.key==='ArrowUp'){e.preventDefault();QI=Math.max(0,QI-1);showQ();}else if(e.key==='Enter'&&QR[QI]){e.preventDefault();var c=QR[QI][1];QR=[];showQ();e.target.blur();chooseDep(c);}else if(e.key==='Escape'){QR=[];showQ();}});
