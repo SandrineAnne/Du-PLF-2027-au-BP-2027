@@ -858,7 +858,7 @@ tr.row.missrow .rowbtn .t::after{content:"Donnée manquante";margin-left:8px;bac
 #ledger td{vertical-align:top}
 @media (max-width:1100px){.proto{display:none}}
 .qbox{position:relative}
-.qbox .bsel{width:360px}
+
 .qlist{position:absolute;z-index:60;left:0;top:calc(100% + 6px);width:420px;max-width:calc(100vw - 24px);list-style:none;margin:0;padding:6px;background:var(--panel);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--lift);max-height:380px;overflow:auto}
 .qlist li{display:flex;flex-direction:column;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:14px}
 .qlist li span{font-size:12.5px;color:var(--muted)}
@@ -867,7 +867,7 @@ tr.row.missrow .rowbtn .t::after{content:"Donnée manquante";margin-left:8px;bac
 #map path{cursor:pointer}#map path:hover{opacity:.85}#map path.sel{stroke:var(--salmon-deep);stroke-width:2}
 .scale{display:flex;flex-wrap:wrap;gap:10px;font-size:12.5px;color:var(--ink-2);margin-top:8px}.scale i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-2px}
 .rank li{display:flex;justify-content:space-between;gap:10px}.rank li span{color:var(--muted);font-size:13px;white-space:nowrap}
-@media (max-width:1100px){.qbox .bsel{width:240px}}
+
 .vsel{max-width:190px}
 @media (max-width:1250px){.vsel{max-width:140px}}
 
@@ -891,26 +891,57 @@ tr.row.missrow .rowbtn .t::after{content:"Donnée manquante";margin-left:8px;bac
 .feu-av{display:block;margin-top:6px}.pt{display:inline-block;width:11px;height:11px;border-radius:50%;margin:0 5px 0 0;vertical-align:-1px}.pt-vert{background:#2e9e6b}.pt-orange{background:var(--yellow)}.pt-rouge{background:var(--salmon-deep)}
 .feu .feu-av b{display:inline;font-size:inherit}
 .lseg button:disabled{opacity:.4;cursor:not-allowed}
+
+/* En-tête sur deux lignes : recherche et actions, puis le contexte du calcul */
+body{--top-h:112px}
+.top.top2{flex-direction:column;align-items:stretch;gap:0;padding:0}
+.top2 .trow{display:flex;align-items:center;gap:16px;padding:0 20px;min-width:0}
+.top2 .trow:first-child{height:62px}
+.top2 .ctx{height:49px;background:var(--rail);gap:10px;box-shadow:inset 0 1px 0 var(--rule)}
+.top2 .prod{flex:none;flex-direction:column;align-items:flex-start;gap:0;line-height:1.15}
+.top2 .prod b{font-size:17px}.top2 .prod span{font-size:12.5px}
+.top2 .qbox{flex:1;max-width:620px;position:relative}
+.top2 .qbox .bsel{width:100%;max-width:none;padding:10px 12px 10px 38px;border-radius:10px;font-size:15px}
+.top2 .qico{position:absolute;left:12px;top:50%;width:17px;height:17px;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.top2 .qlist{width:100%}
+.top2 .tacts{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.top2 .ctxk{font-size:12.5px;color:var(--muted);font-weight:700;letter-spacing:.01em}
+.top2 .ctx .seg{background:var(--paper)}
+.top2 .ctx .vsel{max-width:220px;padding:6px 10px;font-size:14px;margin-right:6px}
+.top2 .ctxcur{font-size:13.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
+.top2 .ctxcur b{color:var(--ink)}
+@media (max-width:1180px){.top2 .prod span{display:none}.top2 .ctxcur{display:none}}
+@media (max-width:900px){body{--top-h:0px}.top.top2{position:static}.top2 .trow{flex-wrap:wrap;height:auto!important;padding:8px 12px;gap:8px}.top2 .prod{display:none}.top2 .qbox{flex:1 1 100%;max-width:none;order:2}.top2 .tacts{order:1;margin-left:0}.top2 .ctx{flex-wrap:wrap;gap:6px}.top2 .ctxk,.top2 .ctxcur{display:none}.top2 .ctx .lseg{order:1;flex:1 1 100%;display:flex}.top2 .ctx .lseg button{flex:1;padding:7px 4px;font-size:13px}.top2 .ctx .vsel{order:2;flex:1 1 100%;max-width:none;margin:0}}
 </style>
 </head>
 <body>
-<header class="top" id="top">
-  <div class="prod"><b>Simulateur PLF 2027</b><span>bloc communal</span></div>
-  <div class="qbox" data-tuto="recherche"><label class="sr" for="qIn">Rechercher une commune ou une intercommunalité</label>
-  <input id="qIn" class="bsel" autocomplete="off" placeholder="Commune, intercommunalité, code INSEE ou SIREN" role="combobox" aria-controls="qList" aria-expanded="false">
-  <ul id="qList" class="qlist" role="listbox" hidden></ul></div>
-  <div class="seg lseg" data-tuto="lecture" role="group" aria-label="Lecture budgétaire">
-    <button type="button" data-lect="bp" title="Budget principal seul">Budget principal</button>
-    <button type="button" data-lect="ba" title="Budgets annexes : eau, assainissement, transports, zones d’activité…">Budgets annexes</button>
-    <button type="button" data-lect="cons" title="Budget principal et budgets annexes réunis">Consolidé</button>
+<header class="top top2" id="top">
+  <div class="trow">
+    <div class="prod"><b>Simulateur PLF 2027</b><span>communes et intercommunalités</span></div>
+    <div class="qbox" data-tuto="recherche"><label class="sr" for="qIn">Rechercher une commune ou une intercommunalité</label>
+    <svg class="qico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="M10.5 10.5L14 14" stroke-linecap="round"/></svg>
+    <input id="qIn" class="bsel" autocomplete="off" placeholder="Commune, intercommunalité, code INSEE ou SIREN" role="combobox" aria-controls="qList" aria-expanded="false">
+    <ul id="qList" class="qlist" role="listbox" hidden></ul></div>
+    <div class="tacts">
+      <button class="ibtn pri" type="button" data-pres data-tuto="elus" title="Ouvrir la présentation pour les élus"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="2.5" width="12" height="8" rx="1.2"/><path d="M8 10.5V14M5.5 14h5"/></svg><span class="lbl">Pour les élus</span></button>
+      <button class="ibtn" type="button" id="printBtn" title="Imprimer" aria-label="Imprimer"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4.5 5.5V2h7v3.5M4.5 11.5h-2v-6h11v6h-2M4.5 9.5h7V14h-7z"/></svg></button>
+      <span id="aideSlot"></span>
+    </div>
   </div>
-  <label class="sr" for="scenSel">Version du texte</label>
-  <select id="scenSel" data-tuto="version" class="bsel vsel" aria-label="Version du texte"><option value="depose">Texte déposé</option><option value="an">Assemblée (sans effet)</option><option value="ord">Ordonnance (art. 47)</option><option value="a49">49.3</option></select>
-  <span class="sp"></span>
-  <button class="ibtn pri" type="button" data-pres data-tuto="elus" title="Ouvrir la présentation pour les élus"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="2.5" width="12" height="8" rx="1.2"/><path d="M8 10.5V14M5.5 14h5"/></svg><span class="lbl">Pour les élus</span></button>
-  <button class="ibtn" type="button" id="printBtn" title="Imprimer" aria-label="Imprimer"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4.5 5.5V2h7v3.5M4.5 11.5h-2v-6h11v6h-2M4.5 9.5h7V14h-7z"/></svg><span class="lbl">Imprimer</span></button>
-  <span id="aideSlot"></span>
+  <div class="trow ctx">
+    <span class="ctxk">Lecture</span>
+    <div class="seg lseg" data-tuto="lecture" role="group" aria-label="Lecture budgétaire">
+      <button type="button" data-lect="bp" title="Budget principal seul">Budget principal</button>
+      <button type="button" data-lect="ba" title="Budgets annexes : eau, assainissement, transports, zones d’activité…">Budgets annexes</button>
+      <button type="button" data-lect="cons" title="Budget principal et budgets annexes réunis">Consolidé</button>
+    </div>
+    <label class="ctxk" for="scenSel">Version du texte</label>
+    <select id="scenSel" data-tuto="version" class="bsel vsel"><option value="depose">Texte déposé</option><option value="an">Assemblée (sans effet)</option><option value="ord">Ordonnance (art. 47)</option><option value="a49">49.3</option></select>
+    <span class="sp"></span>
+    <span class="ctxcur" id="ctxCur"></span>
+  </div>
 </header>
+
 <div class="shell">
   <aside class="rail">
     <nav class="nav" aria-label="Étapes">
@@ -1507,7 +1538,7 @@ function render(){
  var d0=ent(S.code),hb=hasBA(d0);document.querySelectorAll('[data-lect="ba"]').forEach(function(x){x.disabled=!hb;x.title=hb?'Budgets annexes : eau, assainissement, transports, zones d’activité…':'Aucun budget annexe publié pour cette collectivité';});
  if(!hb&&S.L==='ba'){S.L='bp';setTimeout(function(){toast(d0.nom+' n’a pas de budget annexe publié : lecture du budget principal.');},50);}
  saveS();syncCur();var R=calc(),RA=S.scen==='a49'?calcScen('an'):null,d=R.d,L=R.L,b=d.bpa,hab=R.pop?(R.F+R.I)*1e6/R.pop:0;
- byId('qIn').value=d.nom;document.querySelectorAll('[data-lect]').forEach(function(x){x.setAttribute('aria-pressed',String(x.dataset.lect===L));});
+ byId('qIn').value=d.nom;var cc=byId('ctxCur');if(cc)cc.innerHTML='Calcul pour <b>'+esc(d.nom)+'</b>';document.querySelectorAll('[data-lect]').forEach(function(x){x.setAttribute('aria-pressed',String(x.dataset.lect===L));});
  byId('sumDep').textContent=d.nom;byId('sumTot').textContent=m(-(R.F+R.I),1)+'\u00a0M€';byId('sumEp').textContent=f1(R.eb27)+'\u00a0M€';byId('sumCd').innerHTML=ans(R.cd27);byId('sumL').textContent=LECT[L];
  var NAT={M:'Métropole',MET69:'Métropole de Lyon',CU:'Communauté urbaine',CA:'Communauté d’agglomération',CC:'Communauté de communes',EPT:'Établissement public territorial'},kind=d.t==='E'?(NAT[d.nat]||'Intercommunalité'):'Commune'+(d.montagne?' de montagne':'')+(d.rural?' rurale':'');
  byId('depLine').innerHTML='<b>'+esc(d.nom)+'</b> · '+esc(kind)+' · '+F0.format(R.pop)+' habitants'+(d.epci?' · '+esc(d.epci):'')+' · lecture : <b>'+LECT[L].toLowerCase()+'</b>'+(!hasBA(d)?' <span class="sub">(aucun budget annexe publié : le consolidé est égal au budget principal)</span>':'');
