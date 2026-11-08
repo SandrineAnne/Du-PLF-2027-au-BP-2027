@@ -519,6 +519,24 @@ ul.ind li{margin-bottom:6px}
 .tracebody{margin-top:10px}.ttab{width:100%;border-collapse:collapse;font-size:13.5px}.ttab th,.ttab td{padding:6px 8px;border-bottom:1px solid var(--rule);text-align:left}.ttab td.num{text-align:right}
 .slide .sfoot{margin-top:1.4em;font-size:.6em;color:var(--muted)}
 .slide .stab{width:100%;border-collapse:collapse;margin-top:.8em;font-size:.9em}.slide .stab td{padding:.45em .4em;border-bottom:1px solid var(--rule)}.slide .stab td:last-child{text-align:right}
+
+/* En-tête sur deux lignes : département et actions, puis le contexte du calcul */
+body{--top-h:112px}
+.top.top2{flex-direction:column;align-items:stretch;gap:0;padding:0}
+.top2 .trow{display:flex;align-items:center;gap:14px;padding:0 20px;min-width:0}
+.top2 .trow:first-child{height:62px}
+.top2 .ctx{height:49px;background:var(--rail);gap:12px;box-shadow:inset 0 1px 0 var(--rule)}
+.top2 .prod{flex:none;flex-direction:column;align-items:flex-start;gap:0;line-height:1.15}
+.top2 .prod b{font-size:17px}.top2 .prod span{font-size:12.5px}
+.top2 #presBtn{margin-left:auto}
+.top2 .ctxk{font-size:12.5px;color:var(--muted);font-weight:700;white-space:nowrap}
+.top2 .ctx .seg{background:var(--paper)}
+.top2 .ctxcur{font-size:13.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.top2 .ctxcur b{color:var(--ink)}
+@media (max-width:1560px){.top2 .verwrap .seg{display:flex}.top2 .scensel{display:none}}
+@media (min-width:1400px){.top.top2 .ibtn .lbl{display:inline!important}.top.top2 .ibtn:not(.pri){width:auto;padding:0 10px;gap:6px}}
+@media (max-width:1100px){.top2 .verwrap .seg{display:none}.top2 .scensel{display:inline-block}.top2 .prod span{display:none}}
+@media (max-width:900px){body{--top-h:0px}.top.top2{position:static}.top2 .trow{flex-wrap:wrap;height:auto!important;padding:8px 12px;gap:8px}.top2 #presBtn{margin-left:0}.top2 .ctxk,.top2 .ctxcur{display:none}.top2 .verwrap{width:100%}}
 </style>
 <style>
 /* ================= Prise en main intégrée — module générique (v1.0.0) =================
@@ -855,13 +873,22 @@ tr.row.missrow .rowbtn .t::after{content:"Donnée manquante";margin-left:8px;bac
 </style>
 </head>
 <body>
-<header class="top" id="top">
+<header class="top top2" id="top">
+<div class="trow">
   <div class="prod"><b>Simulateur PLF et PLFSS 2027</b><span>des départements</span></div>
   <button class="depbtn" type="button" id="depBtn" data-tuto="choix" aria-haspopup="listbox" aria-expanded="false">
     <span><small>Département</small><strong id="depBtnName">Choisir</strong></span>
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
   </button>
-  <div class="verwrap" data-tuto="versions">
+  
+  
+  <button class="ibtn pri" type="button" id="presBtn" data-pres data-tuto="elus" aria-label="Pour les élus" title="Ouvrir la présentation pour les élus"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="2.5" width="12" height="8" rx="1.2"/><path d="M8 10.5V14M5.5 14h5"/></svg><span class="lbl">Pour les élus</span></button>
+  <button class="ibtn" type="button" id="copyTsv" title="Copier le détail pour Excel" aria-label="Copier le détail pour Excel"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M3 10.5V3.5A1 1 0 0 1 4 2.5h7"/></svg><span class="lbl">Excel</span></button>
+  <button class="ibtn" type="button" id="copyTest" title="Copier le compte rendu de test, à renvoyer au référent" aria-label="Copier le compte rendu de test"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5.5 3H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-1.5"/><rect x="5.5" y="1.8" width="5" height="2.6" rx="1"/><path d="M5.5 9l1.8 1.8 3.4-3.4"/></svg><span class="lbl">Test</span></button>
+  <button class="ibtn" type="button" id="printBtn" title="Imprimer" aria-label="Imprimer"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4.5 5.5V2h7v3.5M4.5 11.5h-2v-6h11v6h-2M4.5 9.5h7V14h-7z"/></svg><span class="lbl">Imprimer</span></button>
+  <span id="aideSlot"></span>
+</div>
+<div class="trow ctx"><span class="ctxk">Version du texte</span><div class="verwrap" data-tuto="versions">
   <div class="seg" role="group" aria-label="Version du texte" id="seg">
     <span class="thumb" id="segThumb" aria-hidden="true"></span>
     <button type="button" data-scen="depose" title="Textes déposés : la copie initiale du Gouvernement">Déposés</button>
@@ -874,13 +901,7 @@ tr.row.missrow .rowbtn .t::after{content:"Donnée manquante";margin-left:8px;bac
   <select class="scensel" id="scenSel" aria-label="Version du texte">
     <option value="depose">Textes déposés</option><option value="bp">Périmètre BP</option><option value="an">Assemblée (sans effet)</option><option value="ord">Ordonnance (article 47)</option><option value="a49">49.3</option><option value="perso">Mes choix</option>
   </select>
-  </div>
-  <span class="sp"></span>
-  <button class="ibtn pri" type="button" id="presBtn" data-pres data-tuto="elus" aria-label="Pour les élus" title="Ouvrir la présentation pour les élus"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="2.5" width="12" height="8" rx="1.2"/><path d="M8 10.5V14M5.5 14h5"/></svg><span class="lbl">Pour les élus</span></button>
-  <button class="ibtn" type="button" id="copyTsv" title="Copier le détail pour Excel" aria-label="Copier le détail pour Excel"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M3 10.5V3.5A1 1 0 0 1 4 2.5h7"/></svg><span class="lbl">Excel</span></button>
-  <button class="ibtn" type="button" id="copyTest" title="Copier le compte rendu de test, à renvoyer au référent" aria-label="Copier le compte rendu de test"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5.5 3H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-1.5"/><rect x="5.5" y="1.8" width="5" height="2.6" rx="1"/><path d="M5.5 9l1.8 1.8 3.4-3.4"/></svg><span class="lbl">Test</span></button>
-  <button class="ibtn" type="button" id="printBtn" title="Imprimer" aria-label="Imprimer"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4.5 5.5V2h7v3.5M4.5 11.5h-2v-6h11v6h-2M4.5 9.5h7V14h-7z"/></svg><span class="lbl">Imprimer</span></button>
-  <span id="aideSlot"></span>
+  </div><span class="sp"></span><span class="ctxcur" id="ctxCur"></span></div>
 </header>
 
 <div class="picker" id="picker" role="dialog" aria-label="Choisir un département" hidden>
@@ -3490,6 +3511,7 @@ function traceInfo(){
 function traceTsv(){return '\n\nTraçabilité\n'+traceInfo().map(function(r){return r.join('\t');}).join('\n');}
 function traceLine(){var n=traceList().length;return 'Version du texte : '+SCEN[state.scen].label.toLowerCase()+' ; chiffres au '+dFrA(ETAT.date)+' ; '+(n?n+' hypothèse'+(n>1?'s':'')+' modifiée'+(n>1?'s':''):'données nationales, aucune hypothèse modifiée')+'.';}
 function renderTrace(){
+ var cc=byId('ctxCur');if(cc&&cur.D)cc.innerHTML=cur.chosen===false?'':'Calcul pour <b>'+esc(cur.D.nom)+'</b> ; '+esc(traceList().length?traceList().length+' hypothèse'+(traceList().length>1?'s':'')+' modifiée'+(traceList().length>1?'s':''):'données nationales');
  var el=byId('traceBar');if(!el||!cur.D)return;var L=traceList(),open=el.open;
  el.innerHTML='<summary><b>D’où vient ce résultat ?</b> '+esc(traceLine())+'</summary><div class="tracebody"><p>Version du texte : <b>'+esc(SCEN[state.scen].label)+'</b>. Chiffrage des mesures : BP Avocats (texte déposé), comptes OFGL. État des textes vérifié le '+dFrA(ETAT.date)+'.</p>'+
   (L.length?'<table class="ttab"><thead><tr><th>Hypothèse modifiée</th><th>Donnée nationale</th><th>Retenu</th></tr></thead><tbody>'+L.map(function(x){return '<tr><td>'+esc(x.l)+'</td><td class="num">'+traceFmt(x.nat,x.u)+'</td><td class="num"><b>'+traceFmt(x.v,x.u)+'</b></td></tr>';}).join('')+'</tbody></table>':'<p>Aucune hypothèse modifiée : toutes les valeurs sont les données nationales.</p>')+
