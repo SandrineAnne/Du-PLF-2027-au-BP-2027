@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulateurs PLF 2027 pour les collectivités</title>
+<meta name="description" content="Deux simulateurs gratuits de l’effet du projet de loi de finances 2027 : départements, communes et intercommunalités. Données publiques, fonctionnement dans le navigateur.">
+<style>
+:root{--paper:#ffffff;--ink:#1d2552;--ink-2:#4a5278;--muted:#6b7296;--rule:#dfe3ef;--navy:#283583;--turq:#2f9fb1;--turq-bg:#e8f6f9;--salmon:#c9504e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--paper:#121628;--ink:#eef1fa;--ink-2:#c3c9e0;--muted:#99a0bd;--rule:#2c3352;--navy:#8fa0ff;--turq:#5fd0e0;--turq-bg:#173341;--salmon:#ff8f8c;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 "Segoe UI",Arial,system-ui,sans-serif}
+main{max-width:1040px;margin:0 auto;padding:56px 24px 40px}
+h1{font-size:clamp(34px,5.4vw,58px);line-height:1.05;letter-spacing:-.02em;margin:0 0 18px;max-width:17ch}
+.lede{font-size:20px;color:var(--ink-2);max-width:60ch;margin:0 0 40px}
+.choix{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;margin-bottom:44px}
+.choix a{display:block;text-decoration:none;color:inherit;border:2px solid var(--rule);border-radius:16px;padding:26px 26px 22px;transition:border-color .15s}
+.choix a:hover{border-color:var(--turq)}
+.choix a:focus-visible{outline:3px solid var(--turq);outline-offset:3px}
+.choix h2{font-size:26px;margin:0 0 6px;color:var(--navy)}
+.choix p{margin:0 0 14px;color:var(--ink-2)}
+.choix ul{margin:0 0 18px;padding-left:1.1em;color:var(--ink-2);font-size:15.5px}
+.choix .go{font-weight:700;color:var(--turq)}
+.carte{width:64px;height:64px;margin-bottom:14px}
+.note{border-left:4px solid var(--turq);background:var(--turq-bg);border-radius:8px;padding:16px 20px;max-width:72ch;margin-bottom:36px}
+.note p{margin:0}
+h3{font-size:18px;margin:28px 0 8px}
+.small{font-size:14.5px;color:var(--muted);max-width:75ch}
+a{color:var(--navy)}
+footer{border-top:1px solid var(--rule);margin-top:44px;padding-top:18px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Que coûtera le budget 2027 de l’État à votre collectivité ?</h1>
+  <p class="lede">Deux simulateurs gratuits chiffrent l’effet du projet de loi de finances et de la hausse des cotisations CNRACL, collectivité par collectivité, avec les données publiques. Ils fonctionnent entièrement dans votre navigateur : rien n’est envoyé.</p>
+
+  <div class="choix">
+    <a href="departements.html">
+      <svg class="carte" viewBox="0 0 64 64" aria-hidden="true"><path d="M30 6l10 3 8 9 6 4-2 10 4 10-8 6-10-1-6 9-10-4-6-8 4-10-8-6 4-10 8-2z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" style="color:var(--navy)"/><path d="M26 22l12 2 4 10-6 8-10-2-4-9z" fill="var(--turq)"/></svg>
+      <h2>Départements</h2>
+      <p>Les 95 départements de métropole.</p>
+      <ul><li>Effet de chaque mesure sur l’épargne et le FCTVA, selon la version du texte</li><li>Prospective 2027-2029 et perspective BP 2027, import et export Excel</li><li>Note de synthèse et présentation pour les élus</li></ul>
+      <span class="go">Ouvrir le simulateur des départements</span>
+    </a>
+    <a href="communes-intercommunalites.html">
+      <svg class="carte" viewBox="0 0 64 64" aria-hidden="true"><g fill="var(--turq)"><rect x="8" y="10" width="13" height="13" rx="3"/><rect x="25" y="10" width="13" height="13" rx="3" opacity=".55"/><rect x="42" y="10" width="13" height="13" rx="3"/><rect x="8" y="27" width="13" height="13" rx="3" opacity=".55"/><rect x="42" y="27" width="13" height="13" rx="3" opacity=".55"/><rect x="25" y="44" width="13" height="13" rx="3"/></g><rect x="25" y="27" width="13" height="13" rx="3" fill="none" stroke="var(--salmon)" stroke-width="3"/></svg>
+      <h2>Communes et intercommunalités</h2>
+      <p>34 961 communes et 1 230 intercommunalités, budgets annexes compris.</p>
+      <ul><li>Budget principal, budgets annexes ou consolidé ; commune et part de l’intercommunalité</li><li>Fonds répartis par le département, mode simplifié pour les petites communes</li><li>Prospective 2027-2029, perspective BP 2027 par chapitres M57</li></ul>
+      <span class="go">Ouvrir le simulateur des communes et intercommunalités</span>
+    </a>
+  </div>
+
+  <div class="note"><p><b>Version de test.</b> Ces outils sont en cours de validation : comparez leurs résultats à votre propre prospective et signalez ce qui vous semble faux ou manquant. Le bouton « Prise en main » de chaque outil propose une visite guidée et un compte rendu de test à renvoyer.</p></div>
+
+  <h3>Sources</h3>
+  <p class="small">Chiffrage du PLF 2027 par collectivité : Bouilland Poilbout Avocats (data.gouv.fr). Comptes 2018-2025 : Observatoire des finances et de la gestion publique locales (OFGL). Balances comptables 2025 : DGFiP. Carte : IGN Admin Express. Données sous Licence Ouverte 2.0.</p>
+  <h3>Avertissement</h3>
+  <p class="small">Estimations sur des textes en cours d’examen au Parlement, mises à jour à mesure des votes : elles ne valent pas notification. Vérifiez les montants à fort enjeu avec vos notifications officielles.</p>
+
+  <footer><p class="small">Code sous licence MIT. Les saisies faites dans les outils restent dans votre navigateur.</p></footer>
+</main>
+</body>
+</html>
