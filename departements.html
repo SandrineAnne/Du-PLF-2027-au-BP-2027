@@ -1613,7 +1613,7 @@ function defsFor(D,META){
  var voi=D.voirie!==null&&D.voirie!==undefined?D.voirie:META.tend.voirie,voiSrc=D.voirie!==null&&D.voirie!==undefined?'Part de la voirie (fonction 84) dans vos dépenses d’équipement 2024-2025 : '+F1.format(D.voirie)+' % (base fonctionnelle OFGL).':'Votre détail fonctionnel n’est pas publié : médiane des départements, '+F1.format(META.tend.voirie)+' %.';
  voi=Math.round(voi*10)/10;
  var moy2=D.equip24?Math.round((equip+D.equip24)/2*100)/100:fBase,baseBp=Math.round(b.fctva/0.0425*100)/100,vol=!!(D.equip24&&equip&&Math.abs(equip/D.equip24-1)>0.2),volPct=vol?Math.round((equip/D.equip24-1)*100):0;
- var cnrBase=Math.round(b.cnracl/0.03*100)/100;
+ var cnrBase=Math.round(b.cnracl/0.03*100)/100,cnrAnom=!!(c.perso&&c.perso>5&&b.cnracl<c.perso*0.004);if(cnrAnom)cnrBase=Math.round(c.perso*0.377*100)/100;
  var ofgl=D.manque&&D.manque.length?' (comptes OFGL indisponibles pour ce département)':'';
  return [
  {id:'cpeb',grp:'plf_f',sect:'F',chart:'CPEB',title:'Contribution progressive à l’effort budgétaire (CPEB)',ref:'PLF, article 37',short:'Retirée, texte rejeté',out:1,
@@ -1693,7 +1693,7 @@ function defsFor(D,META){
   calc:function(p,A){return -(A.apa.nat*A.apa.qp/100*A.apa.real/100)*p.cnsa/100;},hint:function(p){return F0.format(p.cnsa)+' % de l’économie';},formula:'<b>Moins l’économie APA × part CNSA.</b>',note:'',fiab:'indic'},
  {id:'cnracl',grp:'decret',sect:'F',chart:'CNRACL +3 pts',title:'Hausse de la cotisation employeur CNRACL',ref:'Décret n° 2025-86 du 30 janvier 2025',short:'Décret en vigueur',
   chip:'Taux de 40,65 % au 1er janvier 2027',nature:'Dépense de personnel',
-  params:[{k:'base',l:'Traitement indiciaire brut des titulaires affiliés',u:'M€',v:cnrBase,src:'Compte 64111 lu par BP Avocats.',ou:'Compte 64111 (paie), budgets annexes compris si besoin'},{k:'pts',l:'Hausse du taux',u:'points',v:3}],
+  params:[{k:'base',l:'Traitement indiciaire brut des titulaires affiliés',u:'M€',v:cnrBase,src:cnrAnom?'Base corrigée : le chiffrage public ne retient pas de hausse CNRACL pour ces frais de personnel ('+F1.format(c.perso)+' M€) ; estimation à 37,7 % des frais de personnel, médiane des départements. À remplacer par le compte 64111.':'Compte 64111 lu par BP Avocats.',ou:'Compte 64111 (paie), budgets annexes compris si besoin'},{k:'pts',l:'Hausse du taux',u:'points',v:3}],
   calc:function(p){return -p.base*p.pts/100;},hint:function(p){return F1.format(p.base)+' M€ × '+F0.format(p.pts)+' points';},formula:'<b>Traitement indiciaire × points.</b>',note:'',fiab:SOL[D.sol.cnracl]||'etaye'},
  {id:'rsacomp',grp:'an',sect:'F',chart:'Compensation RSA',title:'Compensation de la revalorisation du RSA',ref:'Amendement adopté en séance le 27/10',short:'Ajout sans effet',
   chip:'Adopté en séance le 27/10, tombé avec le rejet du 4/11',nature:'Recette nouvelle',
